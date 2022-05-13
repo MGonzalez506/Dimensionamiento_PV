@@ -15,21 +15,45 @@ import itertools
 import pytz
 import csv
 import pvlib
+import numpy as np
 import pandas as pd
+import matplotlib as mpl
 import matplotlib.pyplot as plt
+import matplotlib.style
+import matplotlib.patches as mpatches
+from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.axes_grid1 import host_subplot
+import mpl_toolkits.axisartist as AA
 
 from time import sleep
 from datetime import datetime
 from io import StringIO
 from pvlib import solarposition
+from pvlib import pvsystem
+from pvlib import location
+from pvlib import clearsky, atmosphere, solarposition
+from pvlib.location import Location
+from pvlib import irradiance
+from rdtools import get_clearsky_tamb
+
+fig_size = plt.rcParams["figure.figsize"]
+fig_size[0]=12
+fig_size[1]=8
+plt.rcParams["figure.figsize"] = fig_size
+
+tz='America/Costa_Rica'
+lat = 9.84950
+lon = -83.91289
+place_name = 'Moren Centro de acondicionamiento Físico'
+altitude = 1360
 
 glosario = {'ghi':'Radiación global Horizontal', 'dni':'Radiación directa', 'dhi':'Radiación difusa', 'IR(h)':'Índice de claridad', 'aoi':'Ángulo de incidencia', 'dni_extra':'Porcentaje de radiación extra'}
 
-# Latitude, Longitude, Name, Altitude, Timezone
-#Costa Rica = America/Costa_Rica
-coordinates = [
-               (9.84950,-83.91289,'Moren Centro de acondicionamiento Físico',1360,'America/Costa_Rica')
-]
+site=location.Location(lat,lon,tz=tz)
+
+def get_irradiance(site_location, start, end, tilt, surface_azimuth):
+  times = pd.date_range(start, end, freq='1min', tz=site_location.tz)
+  clearsky = site_location.getclearsky(times)
 
 #Get modules & inverters
 sandia_modules = pvlib.pvsystem.retrieve_sam('SandiaMod')
