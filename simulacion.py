@@ -202,17 +202,17 @@ date_max = datetime.strptime("2005-01-30 00:00:00+00:00","%Y-%m-%d %H:%M:%S%z")
 #x = last_ac.where(last_ac.keys() < "2005-01-30 00:00:00+00:00")
 #x = last_ac.between_time('00:00', '01:00') #Works but not to much
 #x = last_ac.loc['2005-01-01':'2005-01-02'] #Working perfectly <--------------------
-estudio_por_mes = []
+estudio_por_mes = {}
 for i in selected_months:
   this_year = i['year']
   this_month = i['month']
   mes = str(this_year) + '-' + str(this_month) + '-01'
   x = last_ac.loc[mes:mes]
-  print(x)
+  sumatoria = x.sum()
+  estudio_por_mes[mes] = float(sumatoria)
 
-"""
-energies.plot(kind='bar',rot=0)
-plt.ylabel('Rendimiento energético Anual(Wh)')
-plt.xlabel('Ángulo de inclinación & Ángulo Acimutal')
+estudio_por_mes = pd.Series(estudio_por_mes)
+estudio_por_mes.plot(kind='bar', rot=0)
+plt.ylabel('Energía KWh para un ángulo de inclinación y azimuth determinado')
+plt.xlabel('Mes escogido por el sistema para el estudio')
 plt.show()
-"""
