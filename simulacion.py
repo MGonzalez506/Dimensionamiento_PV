@@ -38,7 +38,7 @@ site_tz='America/Costa_Rica'
 site_lat = 9.84950
 site_lon = -83.91289
 site_name = 'Moren Centro de acondicionamiento Físico'
-site_alt = 1425
+site_alt = 1360
 
 coordinates = [
                (site_lat,site_lon,site_name,site_alt,site_tz)
@@ -89,7 +89,7 @@ azimuth_testing = [0, 90,180,270]
 tilt_testing = [5,10,15]
 energies = {}
 selected_azimuth_angle = 180
-selected_tilt_angle = 15
+selected_tilt_angle = 10
 selected_data = pd.DataFrame()
 selected_data_annual_energy = {}
 for tilt_angle in tilt_testing:
@@ -197,11 +197,13 @@ for i in selected_months:
   mes = str(this_year) + '-' + str(this_month) + '-01'
   x = selected_data.loc[mes:mes]
   sumatoria = x.sum()
-  estudio_por_mes[mes] = float(sumatoria)
+  estudio_por_mes[mes[:-3]] = float(sumatoria)
 
 potencia_maxima_del_panel = module['Impo'] * module['Vmpo'] * string_config
 #for month_energy in estudio_por_mes: print(estudio_por_mes[month_energy]/potencia_maxima_del_panel)
 estudio_por_mes = pd.Series(estudio_por_mes)
+estudio_por_mes_labels = list(estudio_por_mes.keys())
+estudio_por_mes_values = list(estudio_por_mes)
 #print(selected_data_annual_energy)
 
 labels = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Set', 'Oct', 'Nov', 'Dic']
@@ -209,19 +211,44 @@ labels = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Set', 'Oct', 
 x = np.arange(len(labels))
 width = 0.35
 
-fig, ax = plt.subplots()
-rect1 = ax.bar(x, estudio_por_mes, width, label='Mes en estudio')
+fig, ax = plt.subplots(figsize=(20,10))
+rect1 = ax.bar(estudio_por_mes_labels, estudio_por_mes_values, width, label='Año y mes en estudio')
 
-ax.set_xlabel('Mes en estudio', fontsize='xx-large')
+ax.set_xlabel('Año y mes en estudio', fontsize='xx-large')
 ax.set_ylabel('Energía (Wh)', fontsize='xx-large')
 ax.set_title('La producción energética mensual (Wh) para un ángulo azimutal de ' + str(selected_azimuth_angle) + 'º y un ángulo de inclinación de los paneles de ' + str(selected_tilt_angle) + 'º.\nLa producción energética anual para estos ángulos seleccionados es de: ' + str(selected_data_annual_energy.round(1)) + ' Wh\nEl rendimiento energético anual es: ' + str((selected_data_annual_energy/potencia_maxima_del_panel).round(1)) + ' Wh / Wp')
-ax.set_xticks(x, labels)
+#ax.set_xticks(estudio_por_mes_values, estudio_por_mes_labels)
 ax.legend()
 #ax.bar_label(rect1, paadding=3)
 fig.tight_layout()
 plt.show()
 
+lista_de_rendimientos = {}
+lista_de_rendimientos['10º & 0Azi']=(energies['10º & 0Azi']/potencia_maxima_del_panel)
+lista_de_rendimientos['10º & 90Azi']=(energies['10º & 90Azi']/potencia_maxima_del_panel)
+lista_de_rendimientos['10º & 180Azi']=(energies['10º & 180Azi']/potencia_maxima_del_panel)
+lista_de_rendimientos['10º & 270Azi']=(energies['10º & 270Azi']/potencia_maxima_del_panel)
+lista_de_rendimientos = pd.Series(lista_de_rendimientos)
+rendimientos_labels = list(lista_de_rendimientos.keys())
+rendimientos_values = list(lista_de_rendimientos)
+
+width = 0.3
+
+fig, ax = plt.subplots(figsize=(10,8))
+rect1 = ax.bar(rendimientos_labels, rendimientos_values, width)
+
+ax.set_xlabel(('Variación de Ángulos Azimutales para un ángulo de inclinación de: ' + str(selected_tilt_angle) + 'º'), fontsize='xx-large')
+ax.set_ylabel('Rendimiento energético anual (Wh/Wp)', fontsize='xx-large')
+ax.set_title(('Rendimiento energético anual para diferentes ángulos azimutales con un ángulo de inclinación de: ' + str(selected_tilt_angle) + 'º'))
+#ax.set_xticks(x, lista_de_angulos)
+ax.legend()
+#ax.bar_label(rect1, paadding=3)
+fig.tight_layout()
+plt.show()
+
+
 #Obtener el valor máximo de producción energética anual
+energies = pd.Series(energies)
 energy_max = energies.max()
 
 #Calculando el Mean Bias Error absoluto
@@ -236,21 +263,24 @@ for energy in energy_values:
 mean_bias_error = pd.Series(mean_bias_error)
 root_median_square_error = pd.Series(root_median_square_error)
 
+mean_bias_error_values = list(mean_bias_error)
+
 fig, ax = plt.subplots(figsize=(15,10))
 
-color = 'tab:red'
-ax.title.set_text('Mean Bias Error  y Root Median Square Error utilizando como referencia el mejor punto de comparación:  ' + str(round(energy_max,4)))
-ax.set_xlabel('Meses en estudio', color=color, fontsize='xx-large')
+color = '#945200'
+ax.title.set_text('Mean Bias Error  y Root Median Square Error utilizando como referencia el mejor punto de comparación:  ' + str(round(energy_max,4)) + ' Wh')
+ax.set_xlabel('Año y mes en estudio', fontsize='xx-large')
 ax.set_ylabel('Mean Bias Error', color=color, fontsize='xx-large')
-ax.scatter(percentage_labels, mean_bias_error, color=color, s=200)
+ax.scatter(estudio_por_mes_labels, mean_bias_error_values, color=color, s=200)
 ax.legend()
 ax.tick_params(axis='y', labelcolor=color)
 
 ax2 = ax.twinx()
 
-color = 'tab:cyan'
+#color = 'tab:cyan'
+color = '#009051'
 ax2.set_ylabel('Root Median Square Error', color=color, fontsize='xx-large')  # we already handled the x-label with ax1
-ax2.scatter(percentage_labels, root_median_square_error, s=50, color=color)
+ax2.scatter(estudio_por_mes_labels, root_median_square_error, s=50)
 ax2.legend()
 ax2.tick_params(axis='y', labelcolor=color)
 
