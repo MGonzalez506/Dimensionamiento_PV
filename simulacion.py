@@ -191,6 +191,7 @@ plt.show()
 
 #print(last_ac.keys())
 estudio_por_mes = {}
+reference_incident_energy_pvsyst = [4790, 5460, 6740, 6120, 5380, 4840, 4670, 5090, 4970, 4240, 3840, 4740]
 for i in selected_months:
   this_year = i['year']
   this_month = i['month']
@@ -199,20 +200,41 @@ for i in selected_months:
   sumatoria = x.sum()
   estudio_por_mes[mes[:-3]] = float(sumatoria)
 
+labels = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Set', 'Oct', 'Nov', 'Dic']
 potencia_maxima_del_panel = module['Impo'] * module['Vmpo'] * string_config
 #for month_energy in estudio_por_mes: print(estudio_por_mes[month_energy]/potencia_maxima_del_panel)
 estudio_por_mes = pd.Series(estudio_por_mes)
 estudio_por_mes_labels = list(estudio_por_mes.keys())
 estudio_por_mes_values = list(estudio_por_mes)
+
+#Crear una serie de Pandas basado en los datos obtenidos de PVSyst
+reference_incident_energy_pvsyst = pd.Series(reference_incident_energy_pvsyst)
+reference_incident_energy_pvsyst_values = list(reference_incident_energy_pvsyst)
 #print(selected_data_annual_energy)
 
-labels = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Set', 'Oct', 'Nov', 'Dic']
-#labels = estudio_por_mes.keys()
+print("####################")
+print(type(estudio_por_mes_values))
+print(type(reference_incident_energy_pvsyst_values))
+print("####################")
+
+X_axis = np.arange(len(labels))
+plt.bar(X_axis - 0.2, estudio_por_mes_values, 0.4, label = 'Estudio python')
+plt.bar(X_axis + 0.2, reference_incident_energy_pvsyst_values, 0.4, label = 'Estudio syst')
+
+plt.xticks(X_axis, labels)
+plt.xlabel("Meses de estudio")
+plt.ylabel("Energía (Wh)")
+plt.title("Comparación de estudio PVLib vs simulación en PVSyst")
+plt.legend()
+plt.show()
+
+
+"""
 x = np.arange(len(labels))
 width = 0.35
-
 fig, ax = plt.subplots(figsize=(20,10))
-rect1 = ax.bar(estudio_por_mes_labels, estudio_por_mes_values, width, label='Año y mes en estudio')
+rect1 = ax.bar( estudio_por_mes_labels, estudio_por_mes_values, width, label='Año y mes en estudio', color='b')
+rect2 = ax.bar( estudio_por_mes_labels, reference_incident_energy_pvsyst_values, width, label='Data de PVSyst', color='r')
 
 ax.set_xlabel('Año y mes en estudio', fontsize='xx-large')
 ax.set_ylabel('Energía (Wh)', fontsize='xx-large')
@@ -222,6 +244,7 @@ ax.legend()
 #ax.bar_label(rect1, paadding=3)
 fig.tight_layout()
 plt.show()
+"""
 
 lista_de_rendimientos = {}
 lista_de_rendimientos['10º & 0Azi']=(energies['10º & 0Azi']/potencia_maxima_del_panel)
